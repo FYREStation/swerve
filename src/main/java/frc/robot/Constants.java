@@ -4,16 +4,87 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants. This class should not be used for any other purpose. All constants should be declared
+ * The Constants class provides a convenient place for teams to hold robot-wide
+ * numerical or boolean
+ * constants. This class should not be used for any other purpose. All constants
+ * should be declared
  * globally (i.e. public static). Do not put anything functional in this class.
  *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
+ * <p>
+ * It is advised to statically import this class (or one of its inner classes)
+ * wherever the
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
-  }
+
+	public static class DriverConstants {
+
+		public static final int frontLeftSwervePort = 0;
+		public static final int frontRightSwervePort = 1;
+		public static final int backLeftSwervePort = 2;
+		public static final int backRightSwervePort = 3;
+	
+		public static final int[] swerveMotorPorts = {
+			frontLeftSwervePort,
+			frontRightSwervePort,
+			backLeftSwervePort,
+			backRightSwervePort
+		};
+
+    	public static final int frontLeftDrivePort = 4;
+    	public static final int frontDriveSwervePort = 5;
+		public static final int backLeftDrivePort = 6;
+		public static final int backRightDrivePort = 7;
+
+		public static final int[] driveMotorPorts = {
+			frontLeftDrivePort,
+			frontDriveSwervePort,
+			backLeftDrivePort,
+			backRightDrivePort
+		};
+
+		public static final int[] frontLeftEnoder = {0, 1};
+		public static final int[] frontRightEncoder = {2, 3};
+		public static final int[] backLeftEncoder = {4, 5};
+		public static final int[] backRightEncoder = {6, 7};
+
+		public static final int[][] encoders = {
+			frontLeftEnoder,
+			frontRightEncoder,
+			backLeftEncoder,
+			backRightEncoder
+		};
+
+		public static final Translation2d frontLeft = new Translation2d(10.75, 10.75);
+		public static final Translation2d frontRight= new Translation2d(10.75, -10.75);
+		public static final Translation2d backLeft = new Translation2d(-10.75, 10.75);
+		public static final Translation2d backRight = new Translation2d(-10.75, -10.75);
+
+		public static final double swerveP = 0.08;
+		public static final double swerveI = 0.00;
+		public static final double swerveD = 0.00;
+		public static final double swerveFF = 0.00;
+
+		public static final double highDriveSpeed = 7.26;
+		public static final double speedModifier = 1.0;
+
+		public static final double inchesPerRotation = Math.PI;
+		public static final double metersPerRotation = Units.inchesToMeters(inchesPerRotation);
+
+    	public static final SimpleMotorFeedforward[] driveFeedForward = {
+            new SimpleMotorFeedforward(0.153, 1.6, 0.18),
+            new SimpleMotorFeedforward(0.153, 1.6, 0.18),
+            new SimpleMotorFeedforward(0.153, 1.6, 0.18),
+            new SimpleMotorFeedforward(0.153, 1.6, 0.18)};
+
+  	}
+
+	public static class OperatorConstants {
+		public static final int DriverControllerPort = 0;
+	}
 }
