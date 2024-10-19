@@ -79,7 +79,7 @@ public class Swerve extends SubsystemBase{
             driveMotors[i].getEncoder().setPositionConversionFactor(1);
             driveMotors[i].getEncoder().setVelocityConversionFactor(1);
 
-            swerveMotors[i].getAnalog(SparkAnalogSensor.Mode.kAbsolute).setPositionConversionFactor(360 / 3.3) // this is arbitrary
+            swerveMotors[i].getAnalog(SparkAnalogSensor.Mode.kAbsolute).setPositionConversionFactor(360 / 3.3); // this is arbitrary
 
             swervePID[i] = swerveMotors[i].getPIDController();
             swervePID[i].setP(DriverConstants.swerveP);
