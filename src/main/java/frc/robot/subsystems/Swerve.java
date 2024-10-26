@@ -20,8 +20,11 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriverConstants;
+import frc.robot.util.ControllerInput;
 
 public class Swerve extends SubsystemBase{
+
+    private final ControllerInput controllerInput;
 
     private final CANSparkMax[] swerveMotors = new CANSparkMax[4];
 
@@ -56,7 +59,10 @@ public class Swerve extends SubsystemBase{
 
     private double turnTarget = 0;
 
-    public Swerve() {
+    public Swerve(ControllerInput controller) {
+
+        controllerInput = controller;
+
         // sets up the motors
         setupMotors();
 
@@ -65,6 +71,11 @@ public class Swerve extends SubsystemBase{
         // reset the gyro
         gyroAhrs.reset();
 
+    }
+
+    @Override
+    public void periodic() {
+        swerveDrive();
     }
 
     private void setupMotors() {
@@ -151,23 +162,23 @@ public class Swerve extends SubsystemBase{
         return swerveModuleState;
     }
 
-    public void swerveDrive(double velocityX, double velocityY, double theta) {
+    public void swerveDrive() {
         double turnSpeed = 0;
-        if (Math.abs(theta) < 0.01) {
+        if (Math.abs(controllerInput.getTheta()) < 0.01) {
             double error = turnTarget + getAngle();
             turnPID.setSetpoint(0);
             if (Math.abs(error) > 2) turnSpeed = turnPID.calculate(error);
             turnSpeed = 0;
         } else  {
-            turnSpeed = theta * 6;
+            turnSpeed = controllerInput.getTheta() * 6;
             turnTarget = getAngle();
         }
 
         ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-            DriverConstants.highDriveSpeed * velocityX,
-            DriverConstants.highDriveSpeed * velocityY,
+            DriverConstants.highDriveSpeed * controllerInput.getX(),
+            DriverConstants.highDriveSpeed * controllerInput.getY(),
             turnSpeed,
-            Rotation2d.fromRadians(getAngle())
+            Rotation2d.fromDegrees(getAngle())
         );
 
         swerveDrive(chassisSpeeds);
@@ -182,7 +193,7 @@ public class Swerve extends SubsystemBase{
 
         for (int i = 0; i < 4; i++) {
             SwerveModuleState targetState = moduleState[i];
-            double targetAngle = targetState.angle.getRadians();
+            double targetAngle = targetState.angle.getDegrees();
             double currentAngle = getAbsolutePosition(i);
 
             double angleDiff = doubleMod((targetAngle - currentAngle) + 180, 360) - 180;
