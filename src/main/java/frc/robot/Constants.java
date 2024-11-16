@@ -25,9 +25,9 @@ public final class Constants {
 	public static class DriverConstants {
 
 		public static final int frontLeftSwervePort = 0;
-		public static final int frontRightSwervePort = 1;
-		public static final int backLeftSwervePort = 2;
-		public static final int backRightSwervePort = 3;
+		public static final int frontRightSwervePort = 2;
+		public static final int backLeftSwervePort = 4;
+		public static final int backRightSwervePort = 6;
 	
 		public static final int[] swerveMotorPorts = {
 			frontLeftSwervePort,
@@ -36,9 +36,9 @@ public final class Constants {
 			backRightSwervePort
 		};
 
-    	public static final int frontLeftDrivePort = 4;
-    	public static final int frontDriveSwervePort = 5;
-		public static final int backLeftDrivePort = 6;
+    	public static final int frontLeftDrivePort = 1;
+    	public static final int frontDriveSwervePort = 3;
+		public static final int backLeftDrivePort = 5;
 		public static final int backRightDrivePort = 7;
 
 		public static final int[] driveMotorPorts = {

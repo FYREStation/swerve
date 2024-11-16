@@ -16,7 +16,7 @@ public class ControllerInput extends SubsystemBase {
     public void periodic() {
         x = controller.getX();
         y = controller.getY();
-        theta = controller.getDirectionDegrees();
+        theta = controller.getZ();
     }
 
     public double getX() {return x;}
