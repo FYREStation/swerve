@@ -24,10 +24,10 @@ public final class Constants {
 
 	public static class DriverConstants {
 
-		public static final int frontLeftSwervePort = 0;
-		public static final int frontRightSwervePort = 2;
-		public static final int backLeftSwervePort = 4;
-		public static final int backRightSwervePort = 6;
+		public static final int frontLeftSwervePort = 1;
+		public static final int frontRightSwervePort = 4;
+		public static final int backLeftSwervePort = 5;
+		public static final int backRightSwervePort = 7;
 	
 		public static final int[] swerveMotorPorts = {
 			frontLeftSwervePort,
@@ -36,10 +36,10 @@ public final class Constants {
 			backRightSwervePort
 		};
 
-    	public static final int frontLeftDrivePort = 1;
+    	public static final int frontLeftDrivePort = 2;
     	public static final int frontDriveSwervePort = 3;
-		public static final int backLeftDrivePort = 5;
-		public static final int backRightDrivePort = 7;
+		public static final int backLeftDrivePort = 6;
+		public static final int backRightDrivePort = 8;
 
 		public static final int[] driveMotorPorts = {
 			frontLeftDrivePort,
@@ -48,13 +48,13 @@ public final class Constants {
 			backRightDrivePort
 		};
 
-		public static final int[] frontLeftEnoder = {0, 1};
-		public static final int[] frontRightEncoder = {2, 3};
-		public static final int[] backLeftEncoder = {4, 5};
-		public static final int[] backRightEncoder = {6, 7};
+		public static final int frontLeftEncoder = 0;
+		public static final int frontRightEncoder = 1;
+		public static final int backLeftEncoder = 2;
+		public static final int backRightEncoder = 3;
 
-		public static final int[][] encoders = {
-			frontLeftEnoder,
+		public static final int[] encoders = {
+			frontLeftEncoder,
 			frontRightEncoder,
 			backLeftEncoder,
 			backRightEncoder

@@ -16,7 +16,7 @@ public class ControllerInput extends SubsystemBase {
     public void periodic() {
         x = controller.getX();
         y = controller.getY();
-        theta = controller.getZ();
+        theta = Math.abs(controller.getZ()) < 0.05 ? 0 : controller.getZ();
     }
 
     public double getX() {return x;}
