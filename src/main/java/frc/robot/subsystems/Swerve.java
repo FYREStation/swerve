@@ -170,22 +170,22 @@ public class Swerve extends SubsystemBase{
 
     public void swerveDrive() {
         double turnSpeed = 0;
-        if (Math.abs(controllerInput.getTheta()) < 0.01) {
+        if (Math.abs(controllerInput.theta) < 0.01) {
             double error = turnTarget + getAngle();
             turnPID.setSetpoint(0);
             if (Math.abs(error) > 2) turnSpeed = turnPID.calculate(error);
             turnSpeed = 0;
         } else  {
-            turnSpeed = controllerInput.getTheta();
+            turnSpeed = controllerInput.theta;
             turnTarget = 0;//getAngle();
         }
 
-        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
-            DriverConstants.highDriveSpeed * controllerInput.getX(),
-            DriverConstants.highDriveSpeed * controllerInput.getY(),
-            turnSpeed,
+        ChassisSpeeds chassisSpeeds = new ChassisSpeeds (
+            DriverConstants.highDriveSpeed * controllerInput.x,
+            DriverConstants.highDriveSpeed * controllerInput.y,
+            turnSpeed//,
             //Rotation2d.fromDegrees(getAngle())
-            Rotation2d.fromDegrees(0)
+            // Rotation2d.fromDegrees(0)
         );
 
         swerveDrive(chassisSpeeds);
@@ -200,19 +200,17 @@ public class Swerve extends SubsystemBase{
 
         for (int i = 0; i < 4; i++) {
             SwerveModuleState targetState = moduleState[i];
-            double targetAngle = ((controllerInput.getTheta() + 1) * 180) - 180;//targetState.angle.getDegrees();
+            double targetAngle = targetState.angle.getDegrees();
             double currentAngle = getAbsolutePosition(i);
 
             double angleDiff = doubleMod((targetAngle - currentAngle) + 180, 360) - 180;
-            angleDiff = 0;
 
             if (i == 1) System.out.printf("Diff:%f - Target:%f - Current:%f\n", angleDiff, targetAngle, currentAngle);
 
-            if (Math.abs(angleDiff) > 5) {
+            if (Math.abs(angleDiff) > 5 || !rotate) {
                 swerveMotors[i].set(0); 
             } else {
-                swerveMotors[i].set(controllerInput.getTheta());
-                //swervePID[i].setReference((swerveEncoders[i].getPosition() + angleDiff) / 360, CANSparkMax.ControlType.kPosition);
+                swervePID[i].setReference((swerveEncoders[i].getPosition() + angleDiff) / 360, CANSparkMax.ControlType.kPosition);
             }
 
             setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);

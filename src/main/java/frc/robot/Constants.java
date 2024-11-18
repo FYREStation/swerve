@@ -25,7 +25,7 @@ public final class Constants {
 	public static class DriverConstants {
 
 		public static final int frontLeftSwervePort = 1;
-		public static final int frontRightSwervePort = 4;
+		public static final int frontRightSwervePort = 3;
 		public static final int backLeftSwervePort = 5;
 		public static final int backRightSwervePort = 7;
 	
@@ -37,7 +37,7 @@ public final class Constants {
 		};
 
     	public static final int frontLeftDrivePort = 2;
-    	public static final int frontDriveSwervePort = 3;
+    	public static final int frontDriveSwervePort = 4;
 		public static final int backLeftDrivePort = 6;
 		public static final int backRightDrivePort = 8;
 
