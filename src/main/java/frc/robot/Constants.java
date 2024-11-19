@@ -37,13 +37,13 @@ public final class Constants {
 		};
 
     	public static final int frontLeftDrivePort = 2;
-    	public static final int frontDriveSwervePort = 4;
+    	public static final int frontRightDrivePort = 4;
 		public static final int backLeftDrivePort = 6;
 		public static final int backRightDrivePort = 8;
 
 		public static final int[] driveMotorPorts = {
 			frontLeftDrivePort,
-			frontDriveSwervePort,
+			frontRightDrivePort,
 			backLeftDrivePort,
 			backRightDrivePort
 		};
