@@ -84,6 +84,7 @@ public class Swerve extends SubsystemBase{
         // reset the gyro
         gyroAhrs.reset();
 
+
     }
 
     @Override
@@ -116,6 +117,10 @@ public class Swerve extends SubsystemBase{
             swervePID[i].setI(DriverConstants.swerveI);
             swervePID[i].setD(DriverConstants.swerveD);
             swervePID[i].setFF(DriverConstants.swerveFF);
+            swervePID[i].setPositionPIDWrappingEnabled(false);
+            swervePID[i].setPositionPIDWrappingMinInput(0);
+            swervePID[i].setPositionPIDWrappingMaxInput(360);
+            swervePID[i].setOutputRange(Double.MIN_VALUE, Double.MAX_VALUE);
 
 
             driveMotors[i].setInverted(false);
@@ -226,7 +231,7 @@ public class Swerve extends SubsystemBase{
             if (Math.abs(angleDiff) < 15 || !rotate) {
                 swerveMotors[i].set(0); 
             } else {
-                swervePID[i].setReference(angleDiff, CANSparkMax.ControlType.kPosition);
+                swervePID[i].setReference(targetAngle, CANSparkMax.ControlType.kPosition);
             }
 
             //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
@@ -247,14 +252,12 @@ public class Swerve extends SubsystemBase{
     }
 
     private double getAngleDiff(double targetAngle, int moduleNum) {
-        double prevState = moduleTurnStates[moduleNum];
-        targetAngle += 180;
-        double angleDiff = targetAngle - prevState;
-        if (angleDiff > 180) {
-            targetAngle -= 360;
-        }
-        moduleTurnStates[moduleNum] = targetAngle;
-        return targetAngle;
+
+        double currentState = getSwerveModuleState()[moduleNum].angle.getDegrees();
+
+        double angleDiff = targetAngle - (currentState % 360);
+
+        return currentState + angleDiff;
     }
 
 }
