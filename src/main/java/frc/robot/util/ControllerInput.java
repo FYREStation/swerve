@@ -20,6 +20,11 @@ public class ControllerInput extends SubsystemBase {
     public void periodic() {
         x = controller.getX();
         y = controller.getY();
+        if (Math.abs(x) < 0.05 && Math.abs(y) < 0.05) {
+            x = 0;
+            y = 0;
+        }
+
         theta = controller.getZ();
         //controller.button(1, null).ifHigh(resetFunction);
     }

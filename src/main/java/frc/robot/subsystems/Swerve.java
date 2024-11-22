@@ -61,6 +61,12 @@ public class Swerve extends SubsystemBase{
 
     private double turnTarget = 0;
 
+    private int turnOverFlowCount = 0;
+
+    private double[] moduleTurnStates = {
+        0, 0, 0, 0
+    };
+
     public Swerve(ControllerInput controller) {
 
         controllerInput = controller;
@@ -211,16 +217,16 @@ public class Swerve extends SubsystemBase{
         for (int i = 0; i < 4; i++) {
             SwerveModuleState targetState = moduleState[i];
             double targetAngle = targetState.angle.getDegrees();
-            double currentAngle = swerveEncoders[i].getPosition();//getAbsolutePosition(i);
+            double currentAngle = getSwerveModuleState()[i].angle.getDegrees();
 
-            double angleDiff = doubleMod((targetAngle - currentAngle) + 180, 360);
+            double angleDiff = getAngleDiff(targetAngle, i);
 
             if (i == 1) System.out.printf("Diff:%f - Target:%f - Current:%f\n", angleDiff, targetAngle, currentAngle);
 
             if (Math.abs(angleDiff) < 15 || !rotate) {
                 swerveMotors[i].set(0); 
             } else {
-                swervePID[i].setReference(targetAngle / 180, CANSparkMax.ControlType.kPosition);
+                swervePID[i].setReference(angleDiff, CANSparkMax.ControlType.kPosition);
             }
 
             //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
@@ -238,6 +244,17 @@ public class Swerve extends SubsystemBase{
         driveMotors[module].setVoltage(ffv);
         lastMotorSpeeds[module] = velocity;
         lastMotorSetTimes[module] = time;
+    }
+
+    private double getAngleDiff(double targetAngle, int moduleNum) {
+        double prevState = moduleTurnStates[moduleNum];
+        targetAngle += 180;
+        double angleDiff = targetAngle - prevState;
+        if (angleDiff > 180) {
+            targetAngle -= 360;
+        }
+        moduleTurnStates[moduleNum] = targetAngle;
+        return targetAngle;
     }
 
 }
