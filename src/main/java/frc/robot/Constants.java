@@ -65,12 +65,12 @@ public final class Constants {
 		public static final Translation2d backLeft = new Translation2d(-10.75, 10.75);
 		public static final Translation2d backRight = new Translation2d(-10.75, -10.75);
 
-		public static final double swerveP = 0.08;
+		public static final double swerveP = 0.005;
 		public static final double swerveI = 0.00;
 		public static final double swerveD = 0.00;
 		public static final double swerveFF = 0.00;
 
-		public static final double highDriveSpeed = 7.26;
+		public static final double highDriveSpeed = 1;// 7.26;
 		public static final double speedModifier = 1.0;
 
 		public static final double inchesPerRotation = Math.PI;

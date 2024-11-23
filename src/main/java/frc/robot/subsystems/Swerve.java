@@ -105,7 +105,7 @@ public class Swerve extends SubsystemBase{
             );
 
             swerveEncoders[i] = swerveMotors[i].getEncoder();
-            swerveEncoders[i].setPositionConversionFactor(8.14); // this is arbitrary
+            swerveEncoders[i].setPositionConversionFactor(8.14 * 3); // this is arbitrary
             driveMotors[i].getEncoder().setPositionConversionFactor(1);
             driveMotors[i].getEncoder().setVelocityConversionFactor(1);
 
@@ -116,10 +116,12 @@ public class Swerve extends SubsystemBase{
             swervePID[i].setI(DriverConstants.swerveI);
             swervePID[i].setD(DriverConstants.swerveD);
             swervePID[i].setFF(DriverConstants.swerveFF);
+            swervePID[i].setIZone(0);
+            swervePID[i].setOutputRange(-1, 1);
 
 
             driveMotors[i].setInverted(false);
-            swerveMotors[i].setInverted(false);
+            swerveMotors[i].setInverted(true);
             
             // TODO: check this
             //swerveMotors[i].isFollower();
@@ -135,7 +137,7 @@ public class Swerve extends SubsystemBase{
             swerveMotors[i].setSmartCurrentLimit(15);
             driveMotors[i].setSmartCurrentLimit(30);
 
-            driveMotors[i].setIdleMode(IdleMode.kBrake);
+            driveMotors[i].setIdleMode(IdleMode.kCoast);
             swerveMotors[i].setIdleMode(IdleMode.kBrake);
 
             // save config into the sparks
@@ -199,7 +201,7 @@ public class Swerve extends SubsystemBase{
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds (
             DriverConstants.highDriveSpeed * controllerInput.x,
             DriverConstants.highDriveSpeed * controllerInput.y,
-            turnSpeed//,
+            0//,
             //Rotation2d.fromDegrees(getAngle())
             // Rotation2d.fromDegrees(0)
         );
@@ -217,19 +219,16 @@ public class Swerve extends SubsystemBase{
         for (int i = 0; i < 4; i++) {
             SwerveModuleState targetState = moduleState[i];
             double targetAngle = targetState.angle.getDegrees();
-            double currentAngle = getSwerveModuleState()[i].angle.getDegrees();
+            double currentAngle = swerveEncoders[i].getPosition();
 
-            double angleDiff = getAngleDiff(targetAngle, i);
+            double angleDiff = getAngleDiff(targetAngle, currentAngle);
 
-            if (i == 1) System.out.printf("Diff:%f - Target:%f - Current:%f\n", angleDiff, targetAngle, currentAngle);
+            //System.out.printf("%f, %f, %f\n", currentAngle, targetAngle, angleDiff);
 
-            if (Math.abs(angleDiff) < 15 || !rotate) {
-                swerveMotors[i].set(0); 
-            } else {
-                swervePID[i].setReference(angleDiff, CANSparkMax.ControlType.kPosition);
-            }
+            swervePID[i].setReference(angleDiff, CANSparkMax.ControlType.kPosition);
 
             //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
+            driveMotors[i].set(controllerInput.getMagnitude() * 0.5);
 
         }
     }
@@ -246,15 +245,23 @@ public class Swerve extends SubsystemBase{
         lastMotorSetTimes[module] = time;
     }
 
-    private double getAngleDiff(double targetAngle, int moduleNum) {
-        double prevState = moduleTurnStates[moduleNum];
+    private double getAngleDiff(double targetAngle, double currentAngle) {
+
         targetAngle += 180;
-        double angleDiff = targetAngle - prevState;
+
+        double curAngleSign = Math.signum(currentAngle);
+
+        double angleDiff = targetAngle - doubleMod(doubleMod(currentAngle, 360) + 360, 360);
+
+        System.out.println(angleDiff);
+
         if (angleDiff > 180) {
-            targetAngle -= 360;
+            angleDiff -= 360;
+        } else if (angleDiff < -180) {
+            angleDiff += 360;
         }
-        moduleTurnStates[moduleNum] = targetAngle;
-        return targetAngle;
+
+        return currentAngle + angleDiff;
     }
 
 }

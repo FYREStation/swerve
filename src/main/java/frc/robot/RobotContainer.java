@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Swerve;
 import frc.robot.util.ControllerInput;
@@ -21,8 +22,9 @@ import frc.robot.util.ControllerInput;
 public class RobotContainer {
 
 	Joystick joystick = new Joystick(OperatorConstants.driverControllerPort);
+	XboxController xboxController = new XboxController(1);
 
-	ControllerInput controller = new ControllerInput(joystick);
+	ControllerInput controller = new ControllerInput(xboxController);
 
 	Swerve swerve =  new Swerve(controller);
 
