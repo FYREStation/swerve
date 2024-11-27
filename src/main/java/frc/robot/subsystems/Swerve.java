@@ -148,9 +148,9 @@ public class Swerve extends SubsystemBase{
             swervePID[i].setReference(0, CANSparkMax.ControlType.kPosition);
 
             //swerveEncodersDIO[i].reset();
-            // swerveEncodersDIO[i].setPositionOffset(
-            //     DriverConstants.absoluteOffsets[i]
-            // );
+            swerveEncodersDIO[i].setPositionOffset(
+                DriverConstants.absoluteOffsets[i]
+            );
         }
 
         turnPID.disableContinuousInput();
@@ -175,8 +175,8 @@ public class Swerve extends SubsystemBase{
     }
 
     public double getAbsolutePosition(int moduleNumber) {
-        return (swerveEncodersDIO[moduleNumber].getAbsolutePosition() 
-                /*- swerveEncodersDIO[moduleNumber].getPositionOffset()*/) * 360;
+        return (swerveEncodersDIO[moduleNumber].getAbsolutePosition() * 360)
+                - swerveEncodersDIO[moduleNumber].getPositionOffset();
     }
 
     public SwerveModuleState[] getSwerveModuleState() {
