@@ -60,6 +60,13 @@ public final class Constants {
 			backRightEncoder
 		};
 
+		public static final double[] absoluteOffsets = {
+			101.6,
+			141.2,
+			178.7,
+			142.9
+		};
+
 		public static final Translation2d frontLeft = new Translation2d(10.75, 10.75);
 		public static final Translation2d frontRight= new Translation2d(10.75, -10.75);
 		public static final Translation2d backLeft = new Translation2d(-10.75, 10.75);

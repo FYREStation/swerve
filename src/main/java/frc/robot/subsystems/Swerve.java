@@ -105,11 +105,11 @@ public class Swerve extends SubsystemBase{
             );
 
             swerveEncoders[i] = swerveMotors[i].getEncoder();
-            swerveEncoders[i].setPositionConversionFactor(8.14 * 3); // this is arbitrary
+            swerveEncoders[i].setPositionConversionFactor(12.8); // this is arbitrary
             driveMotors[i].getEncoder().setPositionConversionFactor(1);
             driveMotors[i].getEncoder().setVelocityConversionFactor(1);
 
-            swerveMotors[i].getAnalog(SparkAnalogSensor.Mode.kAbsolute).setPositionConversionFactor(360 / 3.3); // this is arbitrary
+            //swerveMotors[i].getAnalog(SparkAnalogSensor.Mode.kAbsolute).setPositionConversionFactor(360 / 3.3); // this is arbitrary
 
             swervePID[i] = swerveMotors[i].getPIDController();
             swervePID[i].setP(DriverConstants.swerveP);
@@ -147,7 +147,10 @@ public class Swerve extends SubsystemBase{
             // set the swerve pid to try to reset to zero
             swervePID[i].setReference(0, CANSparkMax.ControlType.kPosition);
 
-            swerveEncodersDIO[i].reset();
+            //swerveEncodersDIO[i].reset();
+            // swerveEncodersDIO[i].setPositionOffset(
+            //     DriverConstants.absoluteOffsets[i]
+            // );
         }
 
         turnPID.disableContinuousInput();
@@ -172,7 +175,8 @@ public class Swerve extends SubsystemBase{
     }
 
     public double getAbsolutePosition(int moduleNumber) {
-        return swerveEncodersDIO[moduleNumber].getAbsolutePosition() * 360;
+        return (swerveEncodersDIO[moduleNumber].getAbsolutePosition() 
+                /*- swerveEncodersDIO[moduleNumber].getPositionOffset()*/) * 360;
     }
 
     public SwerveModuleState[] getSwerveModuleState() {
@@ -227,6 +231,9 @@ public class Swerve extends SubsystemBase{
 
             swervePID[i].setReference(angleDiff, CANSparkMax.ControlType.kPosition);
 
+            System.out.print(i + ":  ");
+            System.out.println(getAbsolutePosition(i));
+
             //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
             driveMotors[i].set(controllerInput.getMagnitude() * 0.5);
 
@@ -252,8 +259,6 @@ public class Swerve extends SubsystemBase{
         double curAngleSign = Math.signum(currentAngle);
 
         double angleDiff = targetAngle - doubleMod(doubleMod(currentAngle, 360) + 360, 360);
-
-        System.out.println(angleDiff);
 
         if (angleDiff > 180) {
             angleDiff -= 360;
