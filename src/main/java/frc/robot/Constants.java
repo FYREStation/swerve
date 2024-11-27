@@ -61,10 +61,10 @@ public final class Constants {
 		};
 
 		public static final double[] absoluteOffsets = {
-			101.6,
-			141.2,
-			178.7,
-			142.9
+			91.2,
+			81.9,
+			177.3,
+			207.8 
 		};
 
 		public static final Translation2d frontLeft = new Translation2d(10.75, 10.75);

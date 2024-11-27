@@ -67,6 +67,8 @@ public class Swerve extends SubsystemBase{
         0, 0, 0, 0
     };
 
+    private boolean wheelsCalibrated = false;
+
     public Swerve(ControllerInput controller) {
 
         controllerInput = controller;
@@ -105,7 +107,11 @@ public class Swerve extends SubsystemBase{
             );
 
             swerveEncoders[i] = swerveMotors[i].getEncoder();
-            swerveEncoders[i].setPositionConversionFactor(12.8); // this is arbitrary
+            swerveEncoders[i].setPositionConversionFactor(360 / 12.8); // this is arbitrary
+            // if (i % 2 == 0)
+            //     swerveEncoders[i].setPosition(
+            //         swerveEncoders[i].getPosition() + 180
+            //     );
             driveMotors[i].getEncoder().setPositionConversionFactor(1);
             driveMotors[i].getEncoder().setVelocityConversionFactor(1);
 
@@ -125,9 +131,7 @@ public class Swerve extends SubsystemBase{
             
             // TODO: check this
             //swerveMotors[i].isFollower();
-
-            swerveEncodersDIO[i] = new DutyCycleEncoder(
-                DriverConstants.encoders[i]
+swerveEncodersDIO[i] = new DutyCycleEncoder( DriverConstants.encoders[i]
             );
 
             // get data faster from the sparks
@@ -145,12 +149,16 @@ public class Swerve extends SubsystemBase{
             swerveMotors[i].burnFlash();
 
             // set the swerve pid to try to reset to zero
-            swervePID[i].setReference(0, CANSparkMax.ControlType.kPosition);
+            swervePID[i].setReference(
+                //0,
+                (DriverConstants.absoluteOffsets[i] - getAbsolutePosition(i)) + (getAbsolutePosition(i) - swerveEncoders[i].getPosition()),
+                CANSparkMax.ControlType.kPosition
+            );
 
             //swerveEncodersDIO[i].reset();
-            swerveEncodersDIO[i].setPositionOffset(
-                DriverConstants.absoluteOffsets[i]
-            );
+            // swerveEncodersDIO[i].setPositionOffset(
+            //     DriverConstants.absoluteOffsets[i] / 360
+            // );kkkkjk
         }
 
         turnPID.disableContinuousInput();
@@ -175,8 +183,8 @@ public class Swerve extends SubsystemBase{
     }
 
     public double getAbsolutePosition(int moduleNumber) {
-        return (swerveEncodersDIO[moduleNumber].getAbsolutePosition() * 360)
-                - swerveEncodersDIO[moduleNumber].getPositionOffset();
+        return (swerveEncodersDIO[moduleNumber].getAbsolutePosition() 
+                - swerveEncodersDIO[moduleNumber].getPositionOffset()) * 360;
     }
 
     public SwerveModuleState[] getSwerveModuleState() {
@@ -229,7 +237,8 @@ public class Swerve extends SubsystemBase{
 
             //System.out.printf("%f, %f, %f\n", currentAngle, targetAngle, angleDiff);
 
-            swervePID[i].setReference(angleDiff, CANSparkMax.ControlType.kPosition);
+            if (rotate) 
+                swervePID[i].setReference(angleDiff, CANSparkMax.ControlType.kPosition);
 
             System.out.print(i + ":  ");
             System.out.println(getAbsolutePosition(i));
