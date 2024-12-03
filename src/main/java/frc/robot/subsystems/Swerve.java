@@ -114,7 +114,11 @@ public class Swerve extends SubsystemBase{
             );
 
             swerveEncoders[i] = swerveMotors[i].getEncoder();
-            swerveEncoders[i].setPositionConversionFactor(12.8); // this is arbitrary
+            swerveEncoders[i].setPositionConversionFactor(360 / 12.8); // this is arbitrary
+            // if (i % 2 == 0)
+            //     swerveEncoders[i].setPosition(
+            //         swerveEncoders[i].getPosition() + 180
+            //     );
             driveMotors[i].getEncoder().setPositionConversionFactor(1);
             driveMotors[i].getEncoder().setVelocityConversionFactor(1);
 
@@ -134,9 +138,7 @@ public class Swerve extends SubsystemBase{
             
             // TODO: check this
             //swerveMotors[i].isFollower();
-
-            swerveEncodersDIO[i] = new DutyCycleEncoder(
-                DriverConstants.encoders[i]
+swerveEncodersDIO[i] = new DutyCycleEncoder( DriverConstants.encoders[i]
             );
 
             // get data faster from the sparks
