@@ -78,6 +78,7 @@ public final class Constants {
 		public static final double swerveFF = 0.00;
 
 		public static final double highDriveSpeed = 1;// 7.26;
+		public static final double standardDriveSpeed = 0.5;
 		public static final double speedModifier = 1.0;
 
 		public static final double inchesPerRotation = Math.PI;

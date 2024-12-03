@@ -7,10 +7,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ControllerInput extends SubsystemBase {
 
-    public double x, y, theta;
-    private XboxController controller;
+    private double x, y, theta;
 
-    private Runnable resetFunction;
+    // enables / disables "full throttle" on the drive wheels
+    private boolean nos;
+
+    private XboxController controller;
 
     public ControllerInput(XboxController controller) {
         this.controller = controller;
@@ -18,18 +20,26 @@ public class ControllerInput extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // controls the X and Y directions of the robot respectively
         x = controller.getLeftX();
         y = controller.getLeftY();
+
+        // simple deadzone, we can change this to be a circle instead of a square but it doesn't really matter
         if (Math.abs(x) < 0.15 && Math.abs(y) < 0.05) {
             x = 0;
             y = 0;
         }
 
+        // this controls the robot spinning 
         theta = controller.getRightX();
 
-        //controller.button(1, null).ifHigh(resetFunction);
+        // NOS :)
+        nos = controller.getRightTriggerAxis() > 0.75;
     }
 
-    public void setResetFunction(Runnable resetFunction) {this.resetFunction = resetFunction;}
     public double getMagnitude() {return Math.sqrt(x * x + y * y);}
+    public double x() {return x;}
+    public double y() {return y;}
+    public double theta() {return theta;}
+    public boolean nos() {return nos;}
 }
