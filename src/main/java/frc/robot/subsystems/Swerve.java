@@ -67,6 +67,8 @@ public class Swerve extends SubsystemBase{
         0, 0, 0, 0
     };
 
+    private double[] initialStates = new double[4];
+
     boolean setupComplete = false;
 
     public Swerve(ControllerInput controller) {
@@ -85,13 +87,16 @@ public class Swerve extends SubsystemBase{
 
     @Override
     public void periodic() {
-        for (int i = 0; i < 4; i++)
-        System.out.printf("%d --- Cur: %f - CurRelative: %f - Offset %f\n",
-            i,
-            getAbsolutePosition(i),
-            swerveEncoders[i].getPosition(),
-            DriverConstants.absoluteOffsets[i]
-        );
+        for (int i = 0; i < 4; i++){
+            System.out.printf("%d --- Cur: %f - InitState: %f - CurRelative: %f - Offset %f\n",
+                i,
+                getAbsolutePosition(i),
+                initialStates[i],
+                swerveEncoders[i].getPosition(),
+                DriverConstants.absoluteOffsets[i]
+            );
+        }
+        
         if (setupComplete) swerveDrive();
         else {
             for (int i = 0; i < 4; i++) {
@@ -100,7 +105,7 @@ public class Swerve extends SubsystemBase{
                 //     swerveEncoders[i].getPosition(),
                 //     DriverConstants.absoluteOffsets[i]
                 // );
-                if (Math.abs(getAbsolutePosition(i) - DriverConstants.absoluteOffsets[i]) > 5.0) return;
+                if (Math.abs(getAbsolutePosition(i) - DriverConstants.absoluteOffsets[i]) > 1.0) return;
             }
             setupComplete = true;
             resetEncoders();
@@ -122,10 +127,6 @@ public class Swerve extends SubsystemBase{
 
             swerveEncoders[i] = swerveMotors[i].getEncoder();
             swerveEncoders[i].setPositionConversionFactor(360 / 12.8); // this is arbitrary
-            // if (i % 2 == 0)
-            //     swerveEncoders[i].setPosition(
-            //         swerveEncoders[i].getPosition() + 180
-            //     );
             driveMotors[i].getEncoder().setPositionConversionFactor(1);
             driveMotors[i].getEncoder().setVelocityConversionFactor(1);
 
@@ -161,16 +162,19 @@ public class Swerve extends SubsystemBase{
             driveMotors[i].burnFlash();
             swerveMotors[i].burnFlash();
 
-            double relativeZero = DriverConstants.absoluteOffsets[i] - getAbsolutePosition(i);
-            if (relativeZero + getAbsolutePosition(i) < 0) {relativeZero += 360;}
+            double relativeZero = getAbsolutePosition(i);
+            //if (relativeZero + getAbsolutePosition(i) < 0) {relativeZero += 360;}
 
 
             // set the swerve pid to try to reset to zero
             swervePID[i].setReference(
-                relativeZero,
+                DriverConstants.absoluteOffsets[i],
                 CANSparkMax.ControlType.kPosition
             );
 
+            swerveEncoders[i].setPosition(relativeZero);
+
+            initialStates[i] = getAbsolutePosition(i);
 
         }
 
@@ -204,7 +208,7 @@ public class Swerve extends SubsystemBase{
     }
 
     public double getAbsolutePosition(int moduleNumber) {
-        return swerveEncodersDIO[moduleNumber].getAbsolutePosition() * 360;
+        return (360 - (swerveEncodersDIO[moduleNumber].getDistance() * 360)) % 360;
     }
 
     public SwerveModuleState[] getSwerveModuleState() {
