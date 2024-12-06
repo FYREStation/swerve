@@ -61,10 +61,10 @@ public final class Constants {
 		};
 
 		public static final double[] absoluteOffsets = {
-			91.2,
-			81.9,
-			177.3,
-			207.8 
+			265.1,
+			254.4,
+			195.5,
+			175.0 
 		};
 
 		public static final Translation2d frontLeft = new Translation2d(10.75, 10.75);
@@ -72,10 +72,10 @@ public final class Constants {
 		public static final Translation2d backLeft = new Translation2d(-10.75, 10.75);
 		public static final Translation2d backRight = new Translation2d(-10.75, -10.75);
 
-		public static final double swerveP = 0.005;
+		public static final double swerveP = 0.010;
 		public static final double swerveI = 0.00;
 		public static final double swerveD = 0.00;
-		public static final double swerveFF = 0.00;
+		public static final double swerveFF = 0.0;
 
 		public static final double highDriveSpeed = 1;// 7.26;
 		public static final double standardDriveSpeed = 0.5;

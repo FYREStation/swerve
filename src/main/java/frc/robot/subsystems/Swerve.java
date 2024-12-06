@@ -73,27 +73,34 @@ public class Swerve extends SubsystemBase{
 
         controllerInput = controller;
 
-        // sets up the motors
-        setupMotors();
-
         // define the gyro
         gyroAhrs = new AHRS(SPI.Port.kMXP);
         // reset the gyro
         gyroAhrs.reset();
 
+        // sets up the motors
+        setupMotors();
+
     }
 
     @Override
     public void periodic() {
-
+        for (int i = 0; i < 4; i++)
+        System.out.printf("%d --- Cur: %f - CurRelative: %f - Offset %f\n",
+            i,
+            getAbsolutePosition(i),
+            swerveEncoders[i].getPosition(),
+            DriverConstants.absoluteOffsets[i]
+        );
         if (setupComplete) swerveDrive();
         else {
             for (int i = 0; i < 4; i++) {
-                System.out.printf("Cur: %f - Offset %f\n",
-                    getAbsolutePosition(i),
-                    DriverConstants.absoluteOffsets[i]
-                );
-                if (Math.abs(getAbsolutePosition(i) - DriverConstants.absoluteOffsets[i]) > 1.0) return;
+                // System.out.printf("Cur: %f - CurRelative: %f - Offset %f\n",
+                //     getAbsolutePosition(i),
+                //     swerveEncoders[i].getPosition(),
+                //     DriverConstants.absoluteOffsets[i]
+                // );
+                if (Math.abs(getAbsolutePosition(i) - DriverConstants.absoluteOffsets[i]) > 5.0) return;
             }
             setupComplete = true;
             resetEncoders();
@@ -138,8 +145,7 @@ public class Swerve extends SubsystemBase{
             
             // TODO: check this
             //swerveMotors[i].isFollower();
-swerveEncodersDIO[i] = new DutyCycleEncoder( DriverConstants.encoders[i]
-            );
+            swerveEncodersDIO[i] = new DutyCycleEncoder(DriverConstants.encoders[i]);
 
             // get data faster from the sparks
             swerveMotors[i].setPeriodicFramePeriod(PeriodicFrame.kStatus2, 50);
@@ -155,11 +161,16 @@ swerveEncodersDIO[i] = new DutyCycleEncoder( DriverConstants.encoders[i]
             driveMotors[i].burnFlash();
             swerveMotors[i].burnFlash();
 
+            double relativeZero = DriverConstants.absoluteOffsets[i] - getAbsolutePosition(i);
+            if (relativeZero + getAbsolutePosition(i) < 0) {relativeZero += 360;}
+
+
             // set the swerve pid to try to reset to zero
             swervePID[i].setReference(
-                DriverConstants.absoluteOffsets[i] + getAbsolutePosition(i),
+                relativeZero,
                 CANSparkMax.ControlType.kPosition
             );
+
 
         }
 
@@ -182,7 +193,7 @@ swerveEncodersDIO[i] = new DutyCycleEncoder( DriverConstants.encoders[i]
     public void resetEncoders() {
         for (int i = 0; i < 4; i++) {
             swerveEncoders[i].setPosition(0);
-            swerveEncodersDIO[i].reset();
+            //swerveEncodersDIO[i].reset();
         }
 
     }
@@ -249,8 +260,8 @@ swerveEncodersDIO[i] = new DutyCycleEncoder( DriverConstants.encoders[i]
 
             swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);
 
-            System.out.print(i + ":  ");
-            System.out.println(getAbsolutePosition(i));
+            // System.out.print(i + ":  ");
+            // System.out.println(getAbsolutePosition(i));
 
             //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
             driveMotors[i].set(
