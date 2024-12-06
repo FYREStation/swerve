@@ -6,6 +6,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAnalogSensor;
 import com.revrobotics.SparkPIDController;
@@ -97,7 +98,7 @@ public class Swerve extends SubsystemBase{
             );
         }
         
-        if (setupComplete) swerveDrive();
+        if (true) swerveDrive();
         else {
             for (int i = 0; i < 4; i++) {
                 // System.out.printf("Cur: %f - CurRelative: %f - Offset %f\n",
@@ -113,6 +114,7 @@ public class Swerve extends SubsystemBase{
     }
 
     private void setupMotors() {
+
         // if this needs to loop more than 4 times, something is very wrong
         for (int i = 0; i < 4; i++) {
             swerveMotors[i] = new CANSparkMax(
@@ -150,6 +152,7 @@ public class Swerve extends SubsystemBase{
 
             // get data faster from the sparks
             swerveMotors[i].setPeriodicFramePeriod(PeriodicFrame.kStatus2, 50);
+
             driveMotors[i].setPeriodicFramePeriod(PeriodicFrame.kStatus2, 100);
 
             swerveMotors[i].setSmartCurrentLimit(15);
@@ -160,11 +163,13 @@ public class Swerve extends SubsystemBase{
 
             // save config into the sparks
             driveMotors[i].burnFlash();
-            swerveMotors[i].burnFlash();
+            //swerveMotors[i].burnFlash();
 
             double relativeZero = getAbsolutePosition(i);
             //if (relativeZero + getAbsolutePosition(i) < 0) {relativeZero += 360;}
 
+
+            //swerveEncoders[i].setPosition(0);
 
             // set the swerve pid to try to reset to zero
             swervePID[i].setReference(
@@ -172,14 +177,20 @@ public class Swerve extends SubsystemBase{
                 CANSparkMax.ControlType.kPosition
             );
 
-            swerveEncoders[i].setPosition(relativeZero);
+            REVLibError error = swerveEncoders[i].setPosition(relativeZero);
 
-            initialStates[i] = getAbsolutePosition(i);
+            if (error.equals(REVLibError.kOk)) System.out.println("Motor controller took value");
+
+            initialStates[i] = relativeZero;
 
         }
 
         turnPID.disableContinuousInput();
         turnPID.setSetpoint(0);
+
+        
+        // int penis = 0;
+        // while (penis != Integer.MAX_VALUE) penis++;
 
     }
 
@@ -196,7 +207,7 @@ public class Swerve extends SubsystemBase{
 
     public void resetEncoders() {
         for (int i = 0; i < 4; i++) {
-            swerveEncoders[i].setPosition(0);
+            //swerveEncoders[i].setPosition(0);
             //swerveEncodersDIO[i].reset();
         }
 
@@ -208,7 +219,7 @@ public class Swerve extends SubsystemBase{
     }
 
     public double getAbsolutePosition(int moduleNumber) {
-        return (360 - (swerveEncodersDIO[moduleNumber].getDistance() * 360)) % 360;
+        return 360 - (swerveEncodersDIO[moduleNumber].getAbsolutePosition() * 360);
     }
 
     public SwerveModuleState[] getSwerveModuleState() {
@@ -264,8 +275,6 @@ public class Swerve extends SubsystemBase{
 
             swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);
 
-            // System.out.print(i + ":  ");
-            // System.out.println(getAbsolutePosition(i));
 
             //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
             driveMotors[i].set(

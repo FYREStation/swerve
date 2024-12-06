@@ -61,10 +61,10 @@ public final class Constants {
 		};
 
 		public static final double[] absoluteOffsets = {
-			264,
-			197,
-			90,
-			180 
+			253,
+			230,	
+			84,
+			173 
 		};
 
 		public static final Translation2d frontLeft = new Translation2d(10.75, 10.75);
@@ -78,9 +78,10 @@ public final class Constants {
 		public static final double swerveFF = 0.0;
 
 		public static final double highDriveSpeed = 1;// 7.26;
-		public static final double standardDriveSpeed = 0.5;
+		public static final double standardDriveSpeed = (14/50)/12.8;
 		public static final double speedModifier = 1.0;
 
+		public static final double firstStageRatio = (14/50) / 12.8;
 		public static final double inchesPerRotation = Math.PI;
 		public static final double metersPerRotation = Units.inchesToMeters(inchesPerRotation);
 
