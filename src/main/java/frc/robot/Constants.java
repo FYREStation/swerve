@@ -61,12 +61,14 @@ public final class Constants {
 		};
 
 		public static final double[] absoluteOffsets = {
-			253,
-			230,	
-			84,
-			173 
+			//51,
+			//158,	
+			//32,
+			//346
+			61, 154, 104, 348 
 		};
 
+		// TODO: change to meters possibly??
 		public static final Translation2d frontLeft = new Translation2d(10.75, 10.75);
 		public static final Translation2d frontRight= new Translation2d(10.75, -10.75);
 		public static final Translation2d backLeft = new Translation2d(-10.75, 10.75);

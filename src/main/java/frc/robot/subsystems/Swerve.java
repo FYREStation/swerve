@@ -98,7 +98,7 @@ public class Swerve extends SubsystemBase{
             );
         }
         
-        if (true) swerveDrive();
+        if (setupComplete) swerveDrive();
         else {
             for (int i = 0; i < 4; i++) {
                 // System.out.printf("Cur: %f - CurRelative: %f - Offset %f\n",
@@ -169,15 +169,15 @@ public class Swerve extends SubsystemBase{
             //if (relativeZero + getAbsolutePosition(i) < 0) {relativeZero += 360;}
 
 
-            //swerveEncoders[i].setPosition(0);
+            //swerveEncoders[i].setPosition(0); 
 
-            // set the swerve pid to try to reset to zero
+            REVLibError error = swerveEncoders[i].setPosition(relativeZero);
+
+             // set the swerve pid to try to reset to zero
             swervePID[i].setReference(
                 DriverConstants.absoluteOffsets[i],
                 CANSparkMax.ControlType.kPosition
             );
-
-            REVLibError error = swerveEncoders[i].setPosition(relativeZero);
 
             if (error.equals(REVLibError.kOk)) System.out.println("Motor controller took value");
 
@@ -219,7 +219,7 @@ public class Swerve extends SubsystemBase{
     }
 
     public double getAbsolutePosition(int moduleNumber) {
-        return 360 - (swerveEncodersDIO[moduleNumber].getAbsolutePosition() * 360);
+        return 360 - (swerveEncodersDIO[moduleNumber].getDistance() * 360);
     }
 
     public SwerveModuleState[] getSwerveModuleState() {
@@ -273,7 +273,7 @@ public class Swerve extends SubsystemBase{
 
             //System.out.printf("%f, %f, %f\n", currentAngle, targetAngle, absoluteTarget);
 
-            swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);
+            //swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);
 
 
             //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
