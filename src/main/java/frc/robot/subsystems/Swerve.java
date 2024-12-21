@@ -90,26 +90,28 @@ public class Swerve extends SubsystemBase{
 
     @Override
     public void periodic() {
-        
+        for (int i = 0; i < 4; i++) {
+            System.out.printf("%d: %f\n", i, getAbsolutePosition(i));
+        }
         if (setupComplete) swerveDrive();
         else {
             for (int i = 0; i < 4; i++) {
                 if (i == 1) continue;
                 /*
-                System.out.printf("Cur: %f - CurRelative: %f - Offset %f\n",
-                    getAbsolutePosition(i),
-                    swerveEncoders[i].getPosition(),
-                    DriverConstants.absoluteOffsets[i]
+                system.out.printf("cur: %f - currelative: %f - offset %f\n",
+                    getabsoluteposition(i),
+                    swerveencoders[i].getposition(),
+                    driverconstants.absoluteoffsets[i]
                 );
                 */
-                if (Math.abs(swerveEncoders[i].getPosition() - DriverConstants.absoluteOffsets[i]) > 2.5) return;
+                if (Math.abs(swerveEncoders[i].getPosition() - DriverConstants.absoluteOffsets[i]) > 1.5) return;
             }
             setupComplete = true;
             resetEncoders();
             for (int i = 0; i < 4; i++) {
                 swervePID[i].setReference(0, ControlType.kPosition);
             }
-            try {TimeUnit.SECONDS.sleep(5);} catch (InterruptedException e) {e.printStackTrace();}
+            try {TimeUnit.SECONDS.sleep(5);} catch (InterruptedException e) {e.getStackTrace();}
             //for (int i = 0; i < 1000000; i++) {}
         }
     }
@@ -177,6 +179,7 @@ public class Swerve extends SubsystemBase{
             REVLibError error = swerveEncoders[i].setPosition(relativeZero);
 
              // set the swerve pid to try to reset to zero
+            if (i == 1) continue;
             swervePID[i].setReference(
                 DriverConstants.absoluteOffsets[i],
                 CANSparkMax.ControlType.kPosition
@@ -275,7 +278,7 @@ public class Swerve extends SubsystemBase{
 
             //System.out.printf("%f, %f, %f\n", currentAngle, targetAngle, absoluteTarget);
 
-            System.out.println("Driving");
+            //System.out.println("Driving");
 
             if (rotate) {
                 swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);

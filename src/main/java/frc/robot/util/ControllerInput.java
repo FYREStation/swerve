@@ -33,6 +33,10 @@ public class ControllerInput extends SubsystemBase {
         // this controls the robot spinning 
         theta = controller.getRightX();
 
+        if (Math.abs(theta) < 0.05) {
+            theta = 0;
+        }
+
         // NOS :)
         nos = controller.getRightTriggerAxis() > 0.75;
     }

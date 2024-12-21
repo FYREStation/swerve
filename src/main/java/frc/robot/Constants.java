@@ -50,7 +50,7 @@ public final class Constants {
 
 		public static final int frontLeftEncoder = 0;
 		public static final int frontRightEncoder = 1;
-		public static final int backLeftEncoder = 2;
+		public static final int backLeftEncoder = 4;
 		public static final int backRightEncoder = 3;
 
 		public static final int[] encoders = {
@@ -65,14 +65,14 @@ public final class Constants {
 			//158,
 			//32,
 			//346
-			64.17, 154, 192.52, 334.42
+			321.06, 360, 350.59, 14.87
 		};
 
 		// TODO: change to meters possibly??
-		public static final Translation2d frontLeft = new Translation2d(10.75, 10.75);
-		public static final Translation2d frontRight= new Translation2d(10.75, -10.75);
-		public static final Translation2d backLeft = new Translation2d(-10.75, 10.75);
-		public static final Translation2d backRight = new Translation2d(-10.75, -10.75);
+		public static final Translation2d frontLeft = new Translation2d(0.27305, -0.27305);
+		public static final Translation2d frontRight= new Translation2d(0.27305, 0.27305);
+		public static final Translation2d backLeft = new Translation2d(-0.27305, -0.27305);
+		public static final Translation2d backRight = new Translation2d(-0.27305, 0.27305);
 
 		public static final double swerveP = 0.010;
 		public static final double swerveI = 0.00;
