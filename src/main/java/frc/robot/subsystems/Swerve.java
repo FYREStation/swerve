@@ -90,9 +90,9 @@ public class Swerve extends SubsystemBase{
 
     @Override
     public void periodic() {
-        for (int i = 0; i < 4; i++) {
-            System.out.printf("%d: %f\n", i, getAbsolutePosition(i));
-        }
+        // for (int i = 0; i < 4; i++) {
+        //     System.out.printf("%d: %f\n", i, getAbsolutePosition(i));
+        // }
         if (setupComplete) swerveDrive();
         else {
             for (int i = 0; i < 4; i++) {
@@ -251,11 +251,11 @@ public class Swerve extends SubsystemBase{
             turnTarget = getAngle();
         }
 
-        ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
+        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
             DriverConstants.highDriveSpeed * controllerInput.x(),
             DriverConstants.highDriveSpeed * controllerInput.y(),
-            turnSpeed
-            //Rotation2d.fromDegrees(getAngle())
+            turnSpeed,
+            Rotation2d.fromDegrees(getAngle())
             //Rotation2d.fromDegrees(0)
         );
 
