@@ -62,10 +62,10 @@ public final class Constants {
 
 		public static final double[] absoluteOffsets = {
 			//51,
-			//158,	
+			//158,
 			//32,
 			//346
-			61, 154, 104, 348 
+			64.17, 154, 192.52, 334.42
 		};
 
 		// TODO: change to meters possibly??

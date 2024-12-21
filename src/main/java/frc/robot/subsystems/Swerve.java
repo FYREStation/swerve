@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.concurrent.TimeUnit;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
@@ -88,32 +90,33 @@ public class Swerve extends SubsystemBase{
 
     @Override
     public void periodic() {
-        for (int i = 0; i < 4; i++){
-            System.out.printf("%d --- Cur: %f - InitState: %f - CurRelative: %f - Offset %f\n",
-                i,
-                getAbsolutePosition(i),
-                initialStates[i],
-                swerveEncoders[i].getPosition(),
-                DriverConstants.absoluteOffsets[i]
-            );
-        }
         
         if (setupComplete) swerveDrive();
         else {
             for (int i = 0; i < 4; i++) {
-                // System.out.printf("Cur: %f - CurRelative: %f - Offset %f\n",
-                //     getAbsolutePosition(i),
-                //     swerveEncoders[i].getPosition(),
-                //     DriverConstants.absoluteOffsets[i]
-                // );
-                if (Math.abs(getAbsolutePosition(i) - DriverConstants.absoluteOffsets[i]) > 1.0) return;
+                if (i == 1) continue;
+                /*
+                System.out.printf("Cur: %f - CurRelative: %f - Offset %f\n",
+                    getAbsolutePosition(i),
+                    swerveEncoders[i].getPosition(),
+                    DriverConstants.absoluteOffsets[i]
+                );
+                */
+                if (Math.abs(swerveEncoders[i].getPosition() - DriverConstants.absoluteOffsets[i]) > 2.5) return;
             }
             setupComplete = true;
             resetEncoders();
+            for (int i = 0; i < 4; i++) {
+                swervePID[i].setReference(0, ControlType.kPosition);
+            }
+            try {TimeUnit.SECONDS.sleep(5);} catch (InterruptedException e) {e.printStackTrace();}
+            //for (int i = 0; i < 1000000; i++) {}
         }
     }
 
     private void setupMotors() {
+
+        try {TimeUnit.SECONDS.sleep(1);} catch (InterruptedException e) {e.printStackTrace();}
 
         // if this needs to loop more than 4 times, something is very wrong
         for (int i = 0; i < 4; i++) {
@@ -207,7 +210,7 @@ public class Swerve extends SubsystemBase{
 
     public void resetEncoders() {
         for (int i = 0; i < 4; i++) {
-            //swerveEncoders[i].setPosition(0);
+            swerveEncoders[i].setPosition(0);
             //swerveEncodersDIO[i].reset();
         }
 
@@ -248,8 +251,7 @@ public class Swerve extends SubsystemBase{
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
             DriverConstants.highDriveSpeed * controllerInput.x(),
             DriverConstants.highDriveSpeed * controllerInput.y(),
-            0
-            //turnSpeed,
+            turnSpeed
             //Rotation2d.fromDegrees(getAngle())
             //Rotation2d.fromDegrees(0)
         );
@@ -273,15 +275,18 @@ public class Swerve extends SubsystemBase{
 
             //System.out.printf("%f, %f, %f\n", currentAngle, targetAngle, absoluteTarget);
 
-            //swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);
+            System.out.println("Driving");
 
+            if (rotate) {
+                swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);
+            }
 
-            //setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
-            driveMotors[i].set(
-                controllerInput.getMagnitude() 
-                * (controllerInput.nos() ? DriverConstants.highDriveSpeed : DriverConstants.standardDriveSpeed)
-                * DriverConstants.speedModifier
-            );  
+            setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
+            // driveMotors[i].set(
+            //     controllerInput.getMagnitude() 
+            //     * (controllerInput.nos() ? DriverConstants.highDriveSpeed : DriverConstants.standardDriveSpeed)
+            //     * DriverConstants.speedModifier
+            // );
 
         }
     }
