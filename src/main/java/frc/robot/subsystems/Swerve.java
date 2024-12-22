@@ -70,6 +70,8 @@ public class Swerve extends SubsystemBase{
         0, 0, 0, 0
     };
 
+    private boolean fieldRelative = true;
+
     private double[] initialStates = new double[4];
 
     boolean setupComplete = false;
@@ -193,11 +195,6 @@ public class Swerve extends SubsystemBase{
 
         turnPID.disableContinuousInput();
         turnPID.setSetpoint(0);
-
-        
-        // int penis = 0;
-        // while (penis != Integer.MAX_VALUE) penis++;
-
     }
 
     public SwerveDriveKinematics getSwerveDriveKinematics() {return swerveDriveKinematics;}
@@ -251,12 +248,23 @@ public class Swerve extends SubsystemBase{
             turnTarget = getAngle();
         }
 
-        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        if (controllerInput.fieldRelative()){
+                ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                DriverConstants.highDriveSpeed * controllerInput.x(),
+                DriverConstants.highDriveSpeed * controllerInput.y(),
+                turnSpeed,
+                Rotation2d.fromDegrees(getAngle())
+                //Rotation2d.fromDegrees(0)
+            );
+
+            swerveDrive(chassisSpeeds);
+            return;
+        }
+        // If we are not in field relative mode, we are in robot relative mode, so dont do the field thing
+        ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
             DriverConstants.highDriveSpeed * controllerInput.x(),
             DriverConstants.highDriveSpeed * controllerInput.y(),
-            turnSpeed,
-            Rotation2d.fromDegrees(getAngle())
-            //Rotation2d.fromDegrees(0)
+            turnSpeed
         );
 
         swerveDrive(chassisSpeeds);
