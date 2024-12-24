@@ -2,6 +2,9 @@ package frc.robot.util;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+
 import com.google.gson.JsonArray;
 
 import java.io.File;
@@ -21,7 +24,7 @@ public class CameraWebsocketClient {
     private Session wSession;
     private double rotation;
     private String data = "";
-    private boolean pendingMessage = false;
+    private boolean messageInQueue = false;
 
     public static class Color {
         public double red;
@@ -60,8 +63,9 @@ public class CameraWebsocketClient {
 
     @OnMessage
     public void onMessage(String newMessage) {
+        System.out.println("recieved message");
         data = newMessage;
-        pendingMessage = false;
+        messageInQueue = false;
     }
 
     public CameraWebsocketClient() {}
@@ -116,8 +120,11 @@ public class CameraWebsocketClient {
     }
 
     private void sendMessage(Session session, String pMessage) {
-        if (data == "" && !pendingMessage){
+        // data = "";
+        if (!messageInQueue){
+            System.out.println("Sending message: " + pMessage);
             session.getAsyncRemote().sendText(pMessage);
+            messageInQueue = true;
         }
     }
 
@@ -125,11 +132,12 @@ public class CameraWebsocketClient {
         // This function gets the message from the websocket server. It returns the message as a string.
         // This is the other sketchy part - it reads from a file. This is not the best way to do this but it works for the example.
         
-        if (data != "") {
-            return null;
+        if (!data.equals("")) {
+            System.out.println(data);
+            return data;
         }
-        data = "";
-        return data;
+        //System.out.println("No data");
+        return null;
         
     }
 
