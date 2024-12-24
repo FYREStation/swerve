@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.HashMap;
+
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
@@ -79,7 +81,7 @@ public final class Constants {
 		public static final double swerveD = 0.00;
 		public static final double swerveFF = 0.0;
 
-		public static final double highDriveSpeed = 1;// 7.26;
+		public static final double highDriveSpeed = 0.5;// 7.26;
 		public static final double standardDriveSpeed = (14/50)/12.8;
 		public static final double speedModifier = 1.0;
 
@@ -97,5 +99,18 @@ public final class Constants {
 
 	public static class OperatorConstants {
 		public static final int driverControllerPort = 0;
+	}
+
+	public static class VisionConstants {
+		public static final String ipAddress = "ws://10.54.80.201";
+		public static final int CameraRotations[] = {0};
+		public static HashMap<String, Integer> apriltagAngles = new HashMap<>();
+		
+		public VisionConstants() {
+			apriltagAngles.put("13", 0);
+			apriltagAngles.put("tag2", 45);
+			apriltagAngles.put("tag3", 60);
+			apriltagAngles.put("tag4", 90);
+		}
 	}
 }

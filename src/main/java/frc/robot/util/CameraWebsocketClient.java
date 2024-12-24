@@ -17,9 +17,11 @@ import java.util.Scanner;
 
 @ClientEndpoint
 public class CameraWebsocketClient {
-    private String ip = "ws://10.42.0.118:50000";
+    private String ip = "ws://10.54.80.201:50000";
     private Session wSession;
     private double rotation;
+    private String data = "";
+    private boolean pendingMessage = false;
 
     public static class Color {
         public double red;
@@ -58,14 +60,8 @@ public class CameraWebsocketClient {
 
     @OnMessage
     public void onMessage(String newMessage) {
-        // This is the part that is skechy - writing to a file isn't the best way to do this but it works for the example. 
-        try {
-            FileWriter myWriter = new FileWriter("file_" + ip.replace("/", "").replace(":", "") + ".txt");
-            myWriter.write(newMessage);
-            myWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        data = newMessage;
+        pendingMessage = false;
     }
 
     public CameraWebsocketClient() {}
@@ -120,40 +116,19 @@ public class CameraWebsocketClient {
     }
 
     private void sendMessage(Session session, String pMessage) {
-        session.getAsyncRemote().sendText(pMessage);
+        if (data == "" && !pendingMessage){
+            session.getAsyncRemote().sendText(pMessage);
+        }
     }
 
     public String getMessage() {
         // This function gets the message from the websocket server. It returns the message as a string.
         // This is the other sketchy part - it reads from a file. This is not the best way to do this but it works for the example.
-
-        double startTime = System.currentTimeMillis();
-        String data = "";
-
-        while (startTime + 5000 > System.currentTimeMillis()) {
-            try {
-                boolean breakLoop = false;
-                File myObj = new File("file_" + ip.replace("/", "").replace(":", "") + ".txt");
-                Scanner myReader = new Scanner(myObj);
-                while (myReader.hasNextLine()) {
-                    data = myReader.nextLine();
-                    breakLoop = true;
-                }
-                if (breakLoop) {
-                    break;
-                }
-                myReader.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+        
+        if (data != "") {
+            return null;
         }
-        try {
-            FileWriter myWriter = new FileWriter("file_" + ip.replace("/", "").replace(":", "") + ".txt");
-            myWriter.write("");
-            myWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        data = "";
         return data;
         
     }
@@ -182,6 +157,9 @@ public class CameraWebsocketClient {
     }
 
     private Info getInfoFromString(String pMessage) {
+        if (pMessage == null){
+            return null;
+        }
         try {
             JsonObject json = decodeJson(pMessage);
             Info info = new Info();
@@ -235,6 +213,9 @@ public class CameraWebsocketClient {
 
 
     private List<Apriltag> getApriltagsFromString(String pMessage) {
+        if (pMessage == null){
+            return null;
+        }
         try {
             // Decode the JSON string into a JsonArray
             JsonArray jsonArray = new Gson().fromJson(pMessage, JsonArray.class);
