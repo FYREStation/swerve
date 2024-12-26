@@ -11,6 +11,7 @@ public class ControllerInput extends SubsystemBase {
     private boolean nos;
 
     private boolean fieldRelative;
+    private boolean alignWithTag;
 
     private XboxController controller;
 
@@ -41,7 +42,10 @@ public class ControllerInput extends SubsystemBase {
         nos = controller.getRightTriggerAxis() > 0.75;
 
         // field relative :)
-        fieldRelative = controller.getRightBumper();
+        fieldRelative = !controller.getRightBumper();
+
+        // This is just a basic thing - we can make it more complex if we want for auto or smth
+        alignWithTag = controller.getLeftBumper();
     }
 
     public double getMagnitude() {return Math.sqrt(x * x + y * y);}
@@ -50,4 +54,5 @@ public class ControllerInput extends SubsystemBase {
     public double theta() {return theta;}
     public boolean nos() {return nos;}
     public boolean fieldRelative() {return fieldRelative;}
+    public boolean alignWithTag() {return alignWithTag;}
 }

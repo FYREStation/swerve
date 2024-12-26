@@ -130,6 +130,9 @@ public class CameraWebsocketClient {
     }
 
     private Info getInfoFromString(String pMessage) {
+        if (pMessage == null){
+            return null;
+        }
         try {
             JsonObject json = decodeJson(pMessage);
             Info info = new Info();
@@ -182,6 +185,9 @@ public class CameraWebsocketClient {
     }
 
     private List<Apriltag> getApriltagsFromString(String pMessage) {
+        if (pMessage == null){
+            return null;
+        }
         try {
             JsonArray jsonArray = new Gson().fromJson(pMessage, JsonArray.class);
             List<Apriltag> apriltags = new ArrayList<>();
