@@ -98,7 +98,7 @@ public class Swerve extends SubsystemBase{
         if (setupComplete) {
             if (controllerInput.alignWithTag()){
                 
-                ChassisSpeeds temp = VisionSystem.alignWithTag(0);
+                ChassisSpeeds temp = VisionSystem.getTagDrive(0);
                 if(temp != null){
                     swerveDrive(temp);
                 }
@@ -106,6 +106,7 @@ public class Swerve extends SubsystemBase{
                 swerveDrive();
             }
         } else {
+            VisionSystem.clear();
             for (int i = 0; i < 4; i++) {
                 if (i == 1) continue;
                 /*

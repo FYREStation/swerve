@@ -106,6 +106,10 @@ public class CameraWebsocketClient {
         return latestReply;
     }
 
+    public void clear() {
+        latestReply = "";
+      }
+
     public JsonObject decodeJson(String jsonString) {
         Gson gson = new Gson();
         return gson.fromJson(jsonString, JsonObject.class);
