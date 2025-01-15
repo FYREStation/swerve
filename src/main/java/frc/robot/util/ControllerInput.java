@@ -42,10 +42,10 @@ public class ControllerInput extends SubsystemBase {
         nos = controller.getRightTriggerAxis() > 0.75;
 
         // field relative :)
-        fieldRelative = !controller.getRightBumper();
+        fieldRelative = !controller.getRightBumperButton();
 
         // This is just a basic thing - we can make it more complex if we want for auto or smth
-        alignWithTag = controller.getLeftBumper();
+        alignWithTag = controller.getLeftBumperButton();
     }
 
     public double getMagnitude() {return Math.sqrt(x * x + y * y);}

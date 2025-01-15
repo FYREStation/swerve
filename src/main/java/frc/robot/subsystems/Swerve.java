@@ -3,26 +3,26 @@ package frc.robot.subsystems;
 import frc.robot.util.Vision;
 import java.util.concurrent.TimeUnit;
 
-import com.kauailabs.navx.frc.AHRS;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel;
-import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
-import com.revrobotics.CANSparkMax;
+import com.studica.frc.AHRS;
+import com.studica.frc.AHRS.NavXComType;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkAnalogSensor;
-import com.revrobotics.SparkPIDController;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
+import com.revrobotics.spark.SparkClosedLoopController;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.DutyCycle;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -33,15 +33,18 @@ public class Swerve extends SubsystemBase{
 
     private final ControllerInput controllerInput;
 
-    private final CANSparkMax[] swerveMotors = new CANSparkMax[4];
+    private final SparkMax[] swerveMotors = new SparkMax[4];
+    private final SparkMaxConfig[] swerveConfig = new SparkMaxConfig[4];
 
-    private final CANSparkMax[] driveMotors = new CANSparkMax[4];
+    private final SparkMax[] driveMotors = new SparkMax[4];
+    private final SparkMaxConfig[] driveConfig = new SparkMaxConfig[4];
 
     private final RelativeEncoder[] swerveEncoders = new RelativeEncoder[4];
 
-    private final DutyCycleEncoder[] swerveEncodersDIO = new DutyCycleEncoder[4];
+    private final SparkAbsoluteEncoder[] swerveEncodersAbsolute = new SparkAbsoluteEncoder[4];
 
-    private final SparkPIDController[] swervePID = new SparkPIDController[4];
+    private final SparkClosedLoopController[] swervePID = new SparkClosedLoopController[4];
+
 
     private final PIDController turnPID = new PIDController(
         0.02,
@@ -80,7 +83,7 @@ public class Swerve extends SubsystemBase{
         controllerInput = controller;
 
         // define the gyro
-        gyroAhrs = new AHRS(SPI.Port.kMXP);
+        gyroAhrs = new AHRS(NavXComType.kMXP_SPI);
         // reset the gyro
         gyroAhrs.reset();
 
@@ -130,71 +133,74 @@ public class Swerve extends SubsystemBase{
 
     private void setupMotors() {
 
-        try {TimeUnit.SECONDS.sleep(1);} catch (InterruptedException e) {e.printStackTrace();}
-
         // if this needs to loop more than 4 times, something is very wrong
         for (int i = 0; i < 4; i++) {
-            swerveMotors[i] = new CANSparkMax(
+
+            swerveMotors[i] = new SparkMax(
                 DriverConstants.swerveMotorPorts[i],
-                CANSparkLowLevel.MotorType.kBrushless
+                SparkLowLevel.MotorType.kBrushless
             );
 
-            driveMotors[i] = new CANSparkMax(
+            driveMotors[i] = new SparkMax(
                 DriverConstants.driveMotorPorts[i],
-                CANSparkLowLevel.MotorType.kBrushless
+                SparkLowLevel.MotorType.kBrushless
             );
-
-            swerveEncoders[i] = swerveMotors[i].getEncoder();
-            swerveEncoders[i].setPositionConversionFactor(360 / 12.8); // this is arbitrary
-            driveMotors[i].getEncoder().setPositionConversionFactor(1);
-            driveMotors[i].getEncoder().setVelocityConversionFactor(1);
-
-            //swerveMotors[i].getAnalog(SparkAnalogSensor.Mode.kAbsolute).setPositionConversionFactor(360 / 3.3); // this is arbitrary
-
-            swervePID[i] = swerveMotors[i].getPIDController();
-            swervePID[i].setP(DriverConstants.swerveP);
-            swervePID[i].setI(DriverConstants.swerveI);
-            swervePID[i].setD(DriverConstants.swerveD);
-            swervePID[i].setFF(DriverConstants.swerveFF);
-            swervePID[i].setIZone(0);
-            swervePID[i].setOutputRange(-1, 1);
-
-
-            driveMotors[i].setInverted(false);
-            swerveMotors[i].setInverted(true);
             
-            // TODO: check this
-            //swerveMotors[i].isFollower();
-            swerveEncodersDIO[i] = new DutyCycleEncoder(DriverConstants.encoders[i]);
+            swerveEncoders[i] = swerveMotors[i].getEncoder();
+            swerveEncodersAbsolute[i] = swerveMotors[i].getAbsoluteEncoder();
 
-            // get data faster from the sparks
-            swerveMotors[i].setPeriodicFramePeriod(PeriodicFrame.kStatus2, 50);
 
-            driveMotors[i].setPeriodicFramePeriod(PeriodicFrame.kStatus2, 100);
+            swerveConfig[i]
+                .inverted(true)
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(15);
 
-            swerveMotors[i].setSmartCurrentLimit(15);
-            driveMotors[i].setSmartCurrentLimit(30);
+            driveConfig[i]
+                .inverted(false)
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(30);
 
-            driveMotors[i].setIdleMode(IdleMode.kCoast);
-            swerveMotors[i].setIdleMode(IdleMode.kBrake);
+
+            swerveConfig[i].encoder
+                .positionConversionFactor(360 / 12.8)
+                .positionConversionFactor(1);
+
+            driveConfig[i].encoder
+                .positionConversionFactor(1)
+                .velocityConversionFactor(1);
+
+
+            swerveConfig[i].closedLoop
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .pidf(
+                    DriverConstants.swerveP,
+                    DriverConstants.swerveI,
+                    DriverConstants.swerveD,
+                    DriverConstants.swerveFF
+                )
+                .iZone(0)
+                .outputRange(-1, 1);
+
+            swerveConfig[i].signals
+                .primaryEncoderPositionPeriodMs(20);
+
+            driveConfig[i].signals
+                .primaryEncoderPositionPeriodMs(100);
 
             // save config into the sparks
-            driveMotors[i].burnFlash();
-            //swerveMotors[i].burnFlash();
+            swerveMotors[i].configure(swerveConfig[i], ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+            driveMotors[i].configure(driveConfig[i], ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
 
             double relativeZero = getAbsolutePosition(i);
-            //if (relativeZero + getAbsolutePosition(i) < 0) {relativeZero += 360;}
-
-
-            //swerveEncoders[i].setPosition(0); 
 
             REVLibError error = swerveEncoders[i].setPosition(relativeZero);
 
-             // set the swerve pid to try to reset to zero
+            // set the swerve pid to try to reset to zero
             if (i == 1) continue;
             swervePID[i].setReference(
                 DriverConstants.absoluteOffsets[i],
-                CANSparkMax.ControlType.kPosition
+                SparkMax.ControlType.kPosition
             );
 
             if (error.equals(REVLibError.kOk)) System.out.println("Motor controller took value");
@@ -221,7 +227,7 @@ public class Swerve extends SubsystemBase{
     public void resetEncoders() {
         for (int i = 0; i < 4; i++) {
             swerveEncoders[i].setPosition(0);
-            //swerveEncodersDIO[i].reset();
+            //swerveEncodersAbsolute[i].reset();
         }
 
     }
@@ -232,7 +238,7 @@ public class Swerve extends SubsystemBase{
     }
 
     public double getAbsolutePosition(int moduleNumber) {
-        return 360 - (swerveEncodersDIO[moduleNumber].getDistance() * 360);
+        return 360 - (swerveEncodersAbsolute[moduleNumber].getPosition() * 360);
     }
 
     public SwerveModuleState[] getSwerveModuleState() {
@@ -298,7 +304,7 @@ public class Swerve extends SubsystemBase{
             //System.out.println("Driving");
 
             if (rotate) {
-                swervePID[i].setReference(absoluteTarget.targetAngle, CANSparkMax.ControlType.kPosition);
+                swervePID[i].setReference(absoluteTarget.targetAngle, SparkMax.ControlType.kPosition);
             }
 
             setMotorSpeed(i, absoluteTarget.multiplier * targetState.speedMetersPerSecond * DriverConstants.speedModifier);
@@ -317,7 +323,7 @@ public class Swerve extends SubsystemBase{
             ? 0
             : (velocity - lastMotorSpeeds[module]) / (time - lastMotorSetTimes[module]);
 
-        double ffv = DriverConstants.driveFeedForward[module].calculate(velocity, acceleration);
+        double ffv = DriverConstants.driveFeedForward[module].calculateWithVelocities(velocity, acceleration);
         driveMotors[module].setVoltage(ffv);
         lastMotorSpeeds[module] = velocity;
         lastMotorSetTimes[module] = time;
