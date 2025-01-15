@@ -1,8 +1,6 @@
 package frc.robot.util;
 
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.event.BooleanEvent;
-import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ControllerInput extends SubsystemBase {
@@ -11,6 +9,9 @@ public class ControllerInput extends SubsystemBase {
 
     // enables / disables "full throttle" on the drive wheels
     private boolean nos;
+
+    private boolean fieldRelative;
+    private boolean alignWithTag;
 
     private XboxController controller;
 
@@ -39,6 +40,12 @@ public class ControllerInput extends SubsystemBase {
 
         // NOS :)
         nos = controller.getRightTriggerAxis() > 0.75;
+
+        // field relative :)
+        fieldRelative = !controller.getRightBumper();
+
+        // This is just a basic thing - we can make it more complex if we want for auto or smth
+        alignWithTag = controller.getLeftBumper();
     }
 
     public double getMagnitude() {return Math.sqrt(x * x + y * y);}
@@ -46,4 +53,6 @@ public class ControllerInput extends SubsystemBase {
     public double y() {return y;}
     public double theta() {return theta;}
     public boolean nos() {return nos;}
+    public boolean fieldRelative() {return fieldRelative;}
+    public boolean alignWithTag() {return alignWithTag;}
 }

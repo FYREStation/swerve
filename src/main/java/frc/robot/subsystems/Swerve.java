@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import frc.robot.util.Vision;
 import java.util.concurrent.TimeUnit;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.DriverConstants;
 import frc.robot.util.ControllerInput;
 
@@ -58,21 +60,20 @@ public class Swerve extends SubsystemBase{
     double lastMotorSpeeds[] = new double[4];
     double lastMotorSetTimes[] = new double[4];
 
+    private final Vision VisionSystem = new Vision(Constants.VisionConstants.ipAddress, Constants.VisionConstants.CameraRotations, Constants.VisionConstants.apriltagAngles); 
+
     private final AHRS gyroAhrs;
 
-    private final Rotation2d wantedHeading = new Rotation2d();
-
     private double turnTarget = 0;
-
-    private int turnOverFlowCount = 0;
-
-    private double[] moduleTurnStates = {
-        0, 0, 0, 0
-    };
 
     private double[] initialStates = new double[4];
 
     boolean setupComplete = false;
+
+    public class SwerveAngleSpeed{
+        double targetAngle;
+        int multiplier;
+    }
 
     public Swerve(ControllerInput controller) {
 
@@ -93,8 +94,19 @@ public class Swerve extends SubsystemBase{
         // for (int i = 0; i < 4; i++) {
         //     System.out.printf("%d: %f\n", i, getAbsolutePosition(i));
         // }
-        if (setupComplete) swerveDrive();
-        else {
+        
+        if (setupComplete) {
+            if (controllerInput.alignWithTag()){
+                
+                ChassisSpeeds temp = VisionSystem.getTagDrive(0);
+                if(temp != null){
+                    swerveDrive(temp);
+                }
+            } else {
+                swerveDrive();
+            }
+        } else {
+            VisionSystem.clear();
             for (int i = 0; i < 4; i++) {
                 if (i == 1) continue;
                 /*
@@ -193,11 +205,6 @@ public class Swerve extends SubsystemBase{
 
         turnPID.disableContinuousInput();
         turnPID.setSetpoint(0);
-
-        
-        // int penis = 0;
-        // while (penis != Integer.MAX_VALUE) penis++;
-
     }
 
     public SwerveDriveKinematics getSwerveDriveKinematics() {return swerveDriveKinematics;}
@@ -251,12 +258,23 @@ public class Swerve extends SubsystemBase{
             turnTarget = getAngle();
         }
 
-        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        if (controllerInput.fieldRelative()){
+                ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                DriverConstants.highDriveSpeed * controllerInput.x(),
+                DriverConstants.highDriveSpeed * controllerInput.y(),
+                turnSpeed,
+                Rotation2d.fromDegrees(getAngle())
+                //Rotation2d.fromDegrees(0)
+            );
+
+            swerveDrive(chassisSpeeds);
+            return;
+        }
+        // If we are not in field relative mode, we are in robot relative mode, so dont do the field thing
+        ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
             DriverConstants.highDriveSpeed * controllerInput.x(),
             DriverConstants.highDriveSpeed * controllerInput.y(),
-            turnSpeed,
-            Rotation2d.fromDegrees(getAngle())
-            //Rotation2d.fromDegrees(0)
+            turnSpeed
         );
 
         swerveDrive(chassisSpeeds);
@@ -271,20 +289,19 @@ public class Swerve extends SubsystemBase{
 
         for (int i = 0; i < 4; i++) {
             SwerveModuleState targetState = moduleState[i];
-            double targetAngle = targetState.angle.getDegrees();
             double currentAngle = swerveEncoders[i].getPosition();
-
-            double absoluteTarget = getAbsoluteTarget(targetAngle, currentAngle);
-
+            double targetAngle = targetState.angle.getDegrees();
+            SwerveAngleSpeed absoluteTarget = getAbsoluteTarget(targetAngle, currentAngle);
+            
             //System.out.printf("%f, %f, %f\n", currentAngle, targetAngle, absoluteTarget);
 
             //System.out.println("Driving");
 
             if (rotate) {
-                swervePID[i].setReference(absoluteTarget, CANSparkMax.ControlType.kPosition);
+                swervePID[i].setReference(absoluteTarget.targetAngle, CANSparkMax.ControlType.kPosition);
             }
 
-            setMotorSpeed(i, targetState.speedMetersPerSecond * DriverConstants.speedModifier);
+            setMotorSpeed(i, absoluteTarget.multiplier * targetState.speedMetersPerSecond * DriverConstants.speedModifier);
             // driveMotors[i].set(
             //     controllerInput.getMagnitude() 
             //     * (controllerInput.nos() ? DriverConstants.highDriveSpeed : DriverConstants.standardDriveSpeed)
@@ -312,9 +329,12 @@ public class Swerve extends SubsystemBase{
      * @param currentAngle - the current position of the module
      * @return absoluteTarget - the absolute angle the module needs to approach
      */
-    private double getAbsoluteTarget(double targetAngle, double currentAngle) {
+
+    
+    private SwerveAngleSpeed getAbsoluteTarget(double targetAngle, double currentAngle) {
 
         targetAngle += 180;
+        int multiplier = 1;
 
         double angleDiff = targetAngle - doubleMod(doubleMod(currentAngle, 360) + 360, 360);
 
@@ -324,7 +344,19 @@ public class Swerve extends SubsystemBase{
             angleDiff += 360;
         }
 
-        return currentAngle + angleDiff;
+        if (angleDiff < -90){
+            angleDiff += 180;
+            multiplier = -1;
+        } else if (angleDiff > 90){
+            angleDiff -= 180;
+            multiplier = -1;
+        }
+
+        SwerveAngleSpeed returnThing = new SwerveAngleSpeed();
+        returnThing.multiplier = multiplier;
+        returnThing.targetAngle = currentAngle + angleDiff;
+
+        return returnThing;
     }
 
 }
