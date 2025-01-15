@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.subsystems;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,8 +6,7 @@ import java.util.List;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.Constants.DriverConstants;
-
-
+import frc.robot.util.CameraWebsocketClient;
 import frc.robot.util.CameraWebsocketClient.Apriltag;
 import frc.robot.util.CameraWebsocketClient.Info;
 

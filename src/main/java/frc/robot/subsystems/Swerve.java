@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
-import frc.robot.util.Vision;
+import frc.robot.subsystems.Vision;
+
 import java.util.concurrent.TimeUnit;
 
 import com.studica.frc.AHRS;
