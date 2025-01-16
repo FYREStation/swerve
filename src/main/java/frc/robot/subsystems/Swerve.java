@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import frc.robot.subsystems.Vision;
-
 import java.util.concurrent.TimeUnit;
 
 import com.studica.frc.AHRS;
@@ -26,9 +24,9 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Constants.DriverConstants;
 import frc.robot.util.ControllerInput;
+import frc.robot.util.ControllerInput.VisionStatus;
 
 public class Swerve extends SubsystemBase{
 
@@ -64,8 +62,7 @@ public class Swerve extends SubsystemBase{
     double lastMotorSpeeds[] = new double[4];
     double lastMotorSetTimes[] = new double[4];
 
-    private final Vision VisionSystem = new Vision(Constants.VisionConstants.ipAddress, Constants.VisionConstants.CameraRotations, Constants.VisionConstants.apriltagAngles); 
-
+    private final Vision visionSystem; 
     private final AHRS gyroAhrs;
 
     private double turnTarget = 0;
@@ -74,14 +71,16 @@ public class Swerve extends SubsystemBase{
 
     boolean setupComplete = false;
 
-    public class SwerveAngleSpeed{
+    public class SwerveAngleSpeed {
         double targetAngle;
         int multiplier;
     }
 
-    public Swerve(ControllerInput controller) {
+    public Swerve(ControllerInput controller, Vision visionSystem) {
 
-        controllerInput = controller;
+        // assign constructor variables
+        this.controllerInput = controller;
+        this.visionSystem = visionSystem;
 
         // define the gyro
         gyroAhrs = new AHRS(NavXComType.kMXP_SPI);
@@ -95,41 +94,39 @@ public class Swerve extends SubsystemBase{
 
     @Override
     public void periodic() {
-        // for (int i = 0; i < 4; i++) {
-        //     System.out.printf("%d: %f\n", i, getAbsolutePosition(i));
-        // }
-        
         if (setupComplete) {
-            if (controllerInput.alignWithTag()){
-                
-                ChassisSpeeds temp = VisionSystem.getTagDrive(0);
-                if(temp != null){
-                    swerveDrive(temp);
-                }
-            } else {
-                swerveDrive();
-            }
-        } else {
-            VisionSystem.clear();
-            for (int i = 0; i < 4; i++) {
-                if (i == 1) continue;
-                /*
-                system.out.printf("cur: %f - currelative: %f - offset %f\n",
-                    getabsoluteposition(i),
-                    swerveencoders[i].getposition(),
-                    driverconstants.absoluteoffsets[i]
-                );
-                */
-                if (Math.abs(swerveEncoders[i].getPosition() - DriverConstants.absoluteOffsets[i]) > 1.5) return;
-            }
-            setupComplete = true;
-            resetEncoders();
-            for (int i = 0; i < 4; i++) {
-                swervePID[i].setReference(0, ControlType.kPosition);
-            }
-            try {TimeUnit.SECONDS.sleep(5);} catch (InterruptedException e) {e.getStackTrace();}
-            //for (int i = 0; i < 1000000; i++) {}
+            swerveDrive(chooseDriveMode());
+        } else setupCheck();
+    }
+
+    private ChassisSpeeds chooseDriveMode() {
+        VisionStatus status = controllerInput.visionStatus();
+        ChassisSpeeds speeds;
+
+        switch (status) {
+            case ALIGN_TAG:
+                speeds = visionSystem.getTagDrive(0); 
+                break;
+            case LOCKON:
+                // TODO: lockon goes here once done
+            default: // if all else fails - revert to drive controls
+                speeds = controllerChassisSpeeds();
+                break;
         }
+
+        return speeds;
+    }
+
+    private void setupCheck() {
+        visionSystem.clear();
+        for (int i = 0; i < 4; i++) {
+            if (i == 1) continue; // don't mess with bob - remove this when we get him fixed
+            if (Math.abs(swerveEncoders[i].getPosition() - DriverConstants.absoluteOffsets[i]) > 1.5) return;
+        }
+        setupComplete = true;
+        resetEncoders();
+        for (int i = 0; i < 4; i++) swervePID[i].setReference(0, ControlType.kPosition);
+        try {TimeUnit.MILLISECONDS.sleep(20);} catch (InterruptedException e) {e.getStackTrace();}
     }
 
     private void setupMotors() {
@@ -198,7 +195,7 @@ public class Swerve extends SubsystemBase{
             REVLibError error = swerveEncoders[i].setPosition(relativeZero);
 
             // set the swerve pid to try to reset to zero
-            if (i == 1) continue;
+            if (i == 1) continue; // ignore bob - remove this when he's fixed
             swervePID[i].setReference(
                 DriverConstants.absoluteOffsets[i],
                 SparkMax.ControlType.kPosition
@@ -228,9 +225,7 @@ public class Swerve extends SubsystemBase{
     public void resetEncoders() {
         for (int i = 0; i < 4; i++) {
             swerveEncoders[i].setPosition(0);
-            //swerveEncodersAbsolute[i].reset();
         }
-
     }
 
     double doubleMod(double x, double y) {
@@ -253,7 +248,7 @@ public class Swerve extends SubsystemBase{
         return swerveModuleState;
     }
 
-    public void swerveDrive() {
+    public ChassisSpeeds controllerChassisSpeeds() {
         double turnSpeed = 0;
         if (Math.abs(controllerInput.theta()) < 0.01) {
             double error = turnTarget + getAngle();
@@ -274,9 +269,9 @@ public class Swerve extends SubsystemBase{
                 //Rotation2d.fromDegrees(0)
             );
 
-            swerveDrive(chassisSpeeds);
-            return;
+            return chassisSpeeds;
         }
+
         // If we are not in field relative mode, we are in robot relative mode, so dont do the field thing
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(
             DriverConstants.highDriveSpeed * controllerInput.x(),
@@ -284,7 +279,7 @@ public class Swerve extends SubsystemBase{
             turnSpeed
         );
 
-        swerveDrive(chassisSpeeds);
+        return chassisSpeeds;
     }
 
     public void swerveDrive(ChassisSpeeds chassisSpeeds) {

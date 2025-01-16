@@ -5,6 +5,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ControllerInput extends SubsystemBase {
 
+    // add more to this when we get more vision stuff going
+    public enum VisionStatus {
+        NONE,
+        ALIGN_TAG,
+        LOCKON
+    }
+
     private double x, y, theta;
 
     // enables / disables "full throttle" on the drive wheels
@@ -12,6 +19,8 @@ public class ControllerInput extends SubsystemBase {
 
     private boolean fieldRelative;
     private boolean alignWithTag;
+
+    private VisionStatus visionStatus;
 
     private XboxController controller;
 
@@ -46,6 +55,10 @@ public class ControllerInput extends SubsystemBase {
 
         // This is just a basic thing - we can make it more complex if we want for auto or smth
         alignWithTag = controller.getLeftBumperButton();
+
+        if (controller.getLeftBumperButton()) visionStatus = VisionStatus.ALIGN_TAG;
+        else if (controller.getLeftTriggerAxis() > 0.75) visionStatus = VisionStatus.LOCKON;
+        else visionStatus = VisionStatus.NONE;
     }
 
     public double getMagnitude() {return Math.sqrt(x * x + y * y);}
@@ -55,4 +68,5 @@ public class ControllerInput extends SubsystemBase {
     public boolean nos() {return nos;}
     public boolean fieldRelative() {return fieldRelative;}
     public boolean alignWithTag() {return alignWithTag;}
+    public VisionStatus visionStatus() {return visionStatus;}
 }
